@@ -1,0 +1,11 @@
+razor.payment:
+  sandbox:
+    currency: INR
+    receipt: HMRPRD_00
+    payment_capture: false
+    notes:  {}
+    details:
+      currency: ${razor.payment.sandbox.currency}
+      receipt: ${razor.payment.sandbox.receipt}
+      payment_capture: ${razor.payment.sandbox.payment_capture}
+      notes: ${razor.payment.sandbox.notes}
