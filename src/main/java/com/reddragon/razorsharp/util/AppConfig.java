@@ -1,4 +1,4 @@
-package com.reddragon.dev.util;
+package com.reddragon.razorsharp.util;
 
 import io.vertx.core.Vertx;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,4 +21,5 @@ public class AppConfig {
         return environment.getProperty("server.port", Integer.class);
 
     }
+
 }

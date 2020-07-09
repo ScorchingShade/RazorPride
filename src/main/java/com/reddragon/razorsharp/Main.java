@@ -15,11 +15,12 @@ import javax.annotation.PostConstruct;
  * bootstrap vertx application
  */
 @Slf4j
-@SpringBootApplication
 @EnableMongoRepositories
+@SpringBootApplication
 @ComponentScan
 public class Main{
 
+    //Asynchronous concurrency
     private Vertx vertx;
 
     //Autowiring to create a bean of deployerVerticle
@@ -32,6 +33,7 @@ public class Main{
     }
 
     public static void main(String[] args) {
+
         SpringApplication.run(Main.class, args);
     }
 
