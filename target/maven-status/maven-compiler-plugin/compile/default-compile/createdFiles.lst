@@ -1,5 +1,5 @@
 com\reddragon\razorsharp\DeployerVerticle.class
 com\reddragon\razorsharp\models\PaymentModel.class
 com\reddragon\razorsharp\routehandlers\AppRouter.class
-com\reddragon\dev\util\AppConfig.class
+com\reddragon\razorsharp\util\AppConfig.class
 com\reddragon\razorsharp\Main.class

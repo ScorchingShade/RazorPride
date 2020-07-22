@@ -4,6 +4,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.razorpay.Order;
+import com.razorpay.Payment;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
 import com.reddragon.razorsharp.models.PaymentModel;
@@ -29,6 +30,7 @@ import java.util.Set;
 public class AppRouter extends AbstractVerticle {
 
     PaymentModel paymentModel;
+    RazorpayClient razorpayClient;
 
     public AppRouter(PaymentModel paymentModel) {
         this.paymentModel = paymentModel;
@@ -77,15 +79,16 @@ public class AppRouter extends AbstractVerticle {
         router.post("/pay").handler(this::paymentHandler);
 
         //Handler for recheck ops
-        router.post("/request").handler(BodyHandler.create());
-        router.post("/request").handler(this::requestHandler);
+        router.post("/response").handler(BodyHandler.create());
+        router.post("/response").handler(this::responseHandler);
 
         server.requestHandler(router).listen(port);
 
 
     }
 
-    private void requestHandler(RoutingContext routingContext) {
+
+    private void responseHandler(RoutingContext routingContext) {
 
         HttpServerResponse response = routingContext.response();
         response.setChunked(true);
@@ -94,20 +97,49 @@ public class AppRouter extends AbstractVerticle {
         HttpServerRequest request = routingContext.request();
 
 
-        String something = null;
-        try {
-            something = request.getParam("CHECKSUMHASH").toString();
-        } catch (Exception e) {
-            e.printStackTrace();
+        JsonElement jsonElement = new JsonParser().parse(routingContext.getBodyAsString());
+
+        JsonObject fetchedDocument = jsonElement.getAsJsonObject();
+
+        System.out.println(fetchedDocument.toString());
+
+        JSONObject sentResponse=new JSONObject();
+
+        try{
+            razorpayClient = new RazorpayClient("rzp_test_0VoyRtTV4KRbJ0", "abdpfoUY5wbko2tFo48jDqVs");
+            JSONObject captureRequest = new JSONObject();
+
+            //Guard clause to check null;
+            if(fetchedDocument.get("razorpay_payment_id")==null)
+                throw new NullPointerException();
+
+            //Important note, razorpay payment capture amount must always be in paise not rupees
+            String amount = fetchedDocument.get("amount").toString()+"00";
+            String paymentId=fetchedDocument.get("razorpay_payment_id").toString().replaceAll("(\")","");
+
+            captureRequest.put("amount", amount);
+            captureRequest.put("currency", "INR");
+
+
+            Payment payment = razorpayClient.Payments.capture(paymentId, captureRequest);
+
+        }
+        catch (RazorpayException e){
+            sentResponse.put("response", "Could not store into db, please store manually by logging on to your mongo admin console.");
+            sentResponse.put("status","401");
+            response.end(sentResponse.toString());
+            System.out.println(e.getMessage());
+        }
+        catch ( NullPointerException eu){
+            sentResponse.put("response","Could not Fetch Payment Id");
+            sentResponse.put("status","402");
+            response.end(sentResponse.toString());
+
         }
 
-        String somethingMore = request.params().toString();
-
-        System.out.println("sup --"+something);
-
-        System.out.println("sup --"+somethingMore);
-
-        response.end("hello");
+        sentResponse.put("response","Success");
+        sentResponse.put("status","202");
+        response.end(sentResponse.toString());
 
     }
 
@@ -123,17 +155,14 @@ public class AppRouter extends AbstractVerticle {
 
         System.out.println(fetchedDocument.toString());
 
-
-        RazorpayClient razorpayClient;
-
         try {
             razorpayClient = new RazorpayClient("rzp_test_0VoyRtTV4KRbJ0", "abdpfoUY5wbko2tFo48jDqVs");
 
             JSONObject orderRequest = new JSONObject();
             orderRequest.put("amount", Integer.parseInt(fetchedDocument.get("amount").toString().replaceAll("[\"]",""))); // amount in the smallest currency unit
             orderRequest.put("currency", "INR");
-            orderRequest.put("receipt", "order_rcptid_11");
-            orderRequest.put("payment_capture", false);
+            orderRequest.put("receipt", "order_rcptid_15");
+            orderRequest.put("payment_capture", true);
 
             Order order = razorpayClient.Orders.create(orderRequest);
             System.out.println("this is order"+order);
