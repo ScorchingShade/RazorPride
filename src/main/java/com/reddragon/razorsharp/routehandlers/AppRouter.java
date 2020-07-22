@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
 
 import java.util.HashSet;
+import java.util.Random;
 import java.util.ResourceBundle;
 import java.util.Set;
 
@@ -158,10 +159,13 @@ public class AppRouter extends AbstractVerticle {
         try {
             razorpayClient = new RazorpayClient("rzp_test_0VoyRtTV4KRbJ0", "abdpfoUY5wbko2tFo48jDqVs");
 
+            Random rand=new Random();
+            int upperbound = 9999999;
+
             JSONObject orderRequest = new JSONObject();
             orderRequest.put("amount", Integer.parseInt(fetchedDocument.get("amount").toString().replaceAll("[\"]",""))); // amount in the smallest currency unit
             orderRequest.put("currency", "INR");
-            orderRequest.put("receipt", "order_rcptid_15");
+            orderRequest.put("receipt", "order_rcptid_"+rand.nextInt(upperbound));
             orderRequest.put("payment_capture", true);
 
             Order order = razorpayClient.Orders.create(orderRequest);
